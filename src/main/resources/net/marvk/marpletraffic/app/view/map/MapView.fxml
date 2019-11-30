@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.marvk.marpletraffic.app.view.map.MapView">
+    <HBox>
+        <Canvas fx:id="canvas" height="800.0" width="800.0" />
+    </HBox>
+</VBox>
