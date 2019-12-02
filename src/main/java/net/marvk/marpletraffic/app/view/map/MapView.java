@@ -7,7 +7,6 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import net.marvk.marpletraffic.Agent;
 import net.marvk.marpletraffic.Simulation;
@@ -44,24 +43,35 @@ public class MapView implements FxmlView<MapViewModel> {
         g.setFill(null);
         g.setLineWidth(1);
 
-//        drawRoads(simulation, g);
+        drawRoads(simulation, g);
         drawLanes(simulation, g);
-//        drawRoadNods(simulation, g);
-//        drawLaneNodes(simulation, g);
+        drawRoadNods(simulation, g);
+        drawLaneNodes(simulation, g);
         drawAgents(simulation, g);
     }
 
     private void drawAgents(final Simulation simulation, final GraphicsContext g) {
-        g.setFill(null);
-        g.setLineWidth(1);
-        g.setStroke(Color.GREEN);
         for (final Agent agent : simulation.getAgents()) {
+            g.setFill(null);
+            g.setLineWidth(1);
+            g.setStroke(Color.GREEN);
+            final double agentX = agent.getLocation().getX() + HP;
+            final double agentY = agent.getLocation().getY() + HP;
             g.strokeOval(
-                    agent.getLocation().getX() - ROAD_NODE_RADIUS + HP,
-                    agent.getLocation().getY() - ROAD_NODE_RADIUS + HP,
+                    agentX - ROAD_NODE_RADIUS,
+                    agentY - ROAD_NODE_RADIUS,
                     ROAD_NODE_DIAMETER,
                     ROAD_NODE_DIAMETER
             );
+
+            final Coordinate arrow = agent.getLane().getDirectionNormal().multiply(5).translate(agent.getLocation());
+
+            g.strokeLine(agentX, agentY, arrow.getX() + HP, arrow.getY() + HP);
+
+            if (agent.getName() != null) {
+                g.setLineWidth(2);
+                g.strokeText(agent.getName(), agent.getLocation().getX() + 3.5, agent.getLocation().getY() - 3.5);
+            }
         }
     }
 
@@ -109,7 +119,7 @@ public class MapView implements FxmlView<MapViewModel> {
         for (final Lane lane : simulation.getGraph().getLanes()) {
             final Coordinate from = lane.getFrom().getLocation();
             final Coordinate to = lane.getTo().getLocation();
-            g.setLineWidth(10);
+            g.setLineWidth(1);
             g.setStroke(Color.DARKGRAY);
             g.setLineCap(StrokeLineCap.ROUND);
             g.strokeLine(from.getX() + HP, from.getY() + HP, to.getX() + HP, to.getY() + HP);

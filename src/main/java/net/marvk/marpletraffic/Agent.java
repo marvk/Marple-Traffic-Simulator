@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Agent {
     private static final int SLOW_DISTANCE = 100;
     private static final int MIN_DISTANCE = 20;
-    private final double speed;
+    private final double maxSpeed;
     private final List<Agent> otherAgents;
     private final String name;
 
@@ -20,41 +20,48 @@ public class Agent {
 
     private Lane futureLane;
 
-    public Agent(final Lane currentLane, final double speed, final List<Agent> otherAgents) {
-        this(currentLane, speed, otherAgents, null);
+    public Agent(final Lane currentLane, final double maxSpeed, final List<Agent> otherAgents) {
+        this(currentLane, maxSpeed, otherAgents, null);
     }
 
-    public Agent(final Lane currentLane, final double speed, final List<Agent> otherAgents, final String name) {
-        this.speed = speed;
+    public Agent(final Lane currentLane, final double maxSpeed, final List<Agent> otherAgents, final String name) {
+        this.maxSpeed = maxSpeed;
         this.otherAgents = otherAgents;
 
         this.name = name;
 
-        this.current = new Position(currentLane, 0);
+        this.current = new Position(currentLane, 0, 0);
         this.futureLane = randomFutureLane(currentLane);
     }
 
     public void calculateNext() {
-        if (otherAgentsOnDifferentLaneWithSameOutNode(futureLane) && current.distanceFromStart >= current.lane.getLength() - MIN_DISTANCE) {
-            next = current;
-            return;
+        final OptionalDouble nextLaneIntersectionOccupiedStopPoint;
+
+        if (areOtherAgentsOnDifferentLaneWithSameOutNode(futureLane)) {
+            nextLaneIntersectionOccupiedStopPoint = OptionalDouble.of(current.lane.getLength());
+        } else {
+            nextLaneIntersectionOccupiedStopPoint = OptionalDouble.empty();
         }
 
         final OptionalDouble distanceOfAgentOnSameLane = distanceOfAgentOnSameLane();
         final OptionalDouble distanceFromStartOfAgentOnFutureLane = distanceFromStartOfAgentOnFutureLane();
 
-        if (name != null) {
-            System.out.println("name = " + name);
-            System.out.println("distanceOfAgentOnSameLane = " + distanceOfAgentOnSameLane);
-            System.out.println("distanceFromStartOfAgentOnFutureLane = " + distanceFromStartOfAgentOnFutureLane);
-            System.out.println();
-        }
+//        if (name != null) {
+//            System.out.println("name = " + name);
+////            System.out.println("distanceOfAgentOnSameLane = " + distanceOfAgentOnSameLane);
+////            System.out.println("distanceFromStartOfAgentOnFutureLane = " + distanceFromStartOfAgentOnFutureLane);
+//            System.out.println(current);
+//        }
 
-        final double distanceOfAgentAhead = distanceOfAgentAhead(distanceOfAgentOnSameLane, distanceFromStartOfAgentOnFutureLane);
+        final double stopDistanceAhead = stopPoint(distanceOfAgentOnSameLane, distanceFromStartOfAgentOnFutureLane, nextLaneIntersectionOccupiedStopPoint);
 
-        final double currentSpeed = currentSpeed(distanceOfAgentAhead);
+        final double currentMaxSpeed = Math.max(Math.min((current.speed + 0.05) * 1.05, maxSpeed), 0);
 
-        double nextDistanceFromStart = Math.max(Math.min(current.distanceFromStart + currentSpeed, current.distanceFromStart + distanceOfAgentAhead - MIN_DISTANCE), current.distanceFromStart);
+        final double currentSpeed = currentSpeed(stopDistanceAhead, currentMaxSpeed);
+
+        double nextDistanceFromStart = Math.max(Math.min(current.distanceFromStart + currentSpeed, current.distanceFromStart + stopDistanceAhead - MIN_DISTANCE), current.distanceFromStart);
+
+        final double actualSpeed = nextDistanceFromStart - current.distanceFromStart;
 
         Lane nextLane = current.lane;
 
@@ -63,25 +70,21 @@ public class Agent {
 
             nextLane = futureLane;
             futureLane = randomFutureLane(nextLane);
-
-            final Lane finalNextLane = nextLane;
-
-            if (otherAgentsOnDifferentLaneWithSameOutNode(finalNextLane)) {
-                futureLane = nextLane;
-                next = new Position(current.lane, current.lane.getLength());
-                return;
-            }
         }
 
-        next = new Position(nextLane, nextDistanceFromStart);
+        next = new Position(nextLane, nextDistanceFromStart, actualSpeed);
     }
 
-    private double currentSpeed(final double distanceOfAgentAhead) {
+    private double currentSpeed(final double distanceOfAgentAhead, final double maxSpeed) {
+        final double result;
+
         if (distanceOfAgentAhead < SLOW_DISTANCE) {
-            return speed * ((distanceOfAgentAhead - MIN_DISTANCE) / (SLOW_DISTANCE - MIN_DISTANCE));
+            result = this.maxSpeed * ((distanceOfAgentAhead - MIN_DISTANCE) / (SLOW_DISTANCE - MIN_DISTANCE));
         } else {
-            return speed;
+            result = this.maxSpeed;
         }
+
+        return Math.min(maxSpeed, result);
     }
 
     private OptionalDouble distanceOfAgentOnSameLane() {
@@ -100,24 +103,24 @@ public class Agent {
                           .min();
     }
 
-    private double distanceOfAgentAhead(final OptionalDouble distanceOfAgentOnSameLane, final OptionalDouble distanceFromStartOfAgentOnFutureLane) {
-        final double distanceOfAgentAhead;
+    private double stopPoint(final OptionalDouble distanceOfAgentOnSameLane, final OptionalDouble distanceFromStartOfAgentOnFutureLane, final OptionalDouble nextLaneIntersectionOccupiedStopPoint) {
         if (distanceOfAgentOnSameLane.isPresent()) {
-            distanceOfAgentAhead = distanceOfAgentOnSameLane.getAsDouble();
+            return distanceOfAgentOnSameLane.getAsDouble();
         } else if (distanceFromStartOfAgentOnFutureLane.isPresent()) {
-            distanceOfAgentAhead = (current.lane.getLength() - current.distanceFromStart) + distanceFromStartOfAgentOnFutureLane
+            return (current.lane.getLength() - current.distanceFromStart) + distanceFromStartOfAgentOnFutureLane
                     .getAsDouble();
+        } else if (nextLaneIntersectionOccupiedStopPoint.isPresent()) {
+            return nextLaneIntersectionOccupiedStopPoint.getAsDouble() - current.distanceFromStart;
         } else {
-            distanceOfAgentAhead = Double.MAX_VALUE;
+            return Double.MAX_VALUE;
         }
-        return distanceOfAgentAhead;
     }
 
-    private boolean otherAgentsOnDifferentLaneWithSameOutNode(final Lane finalNextLane) {
+    private boolean areOtherAgentsOnDifferentLaneWithSameOutNode(final Lane nextLane) {
         return otherAgents.stream()
                           .map(Agent::getLane)
-                          .filter(e -> !e.equals(finalNextLane))
-                          .anyMatch(e -> e.getTo().equals(finalNextLane.getTo()));
+                          .filter(e -> !e.equals(nextLane))
+                          .anyMatch(e -> e.getTo().equals(nextLane.getTo()));
     }
 
     public void step() {
@@ -147,15 +150,31 @@ public class Agent {
         return current.distanceFromStart;
     }
 
+    public String getName() {
+        return name;
+    }
+
     private static class Position {
         private final Lane lane;
         private final Coordinate location;
         private final double distanceFromStart;
+        private final double speed;
 
-        public Position(final Lane lane, final double distanceFromStart) {
+        private Position(final Lane lane, final double distanceFromStart, final double speed) {
             this.lane = lane;
             this.location = lane.getLocation(distanceFromStart);
             this.distanceFromStart = distanceFromStart;
+            this.speed = speed;
+        }
+
+        @Override
+        public String toString() {
+            return "Position{" +
+                    "lane=" + lane +
+                    ", location=" + location +
+                    ", distanceFromStart=" + distanceFromStart +
+                    ", speed=" + speed +
+                    '}';
         }
     }
 }

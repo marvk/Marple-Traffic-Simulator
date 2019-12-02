@@ -45,9 +45,12 @@ public final class MarpleUi extends Application implements MvvmfxApplication {
     private Simulation s1() {
         final ArrayList<Agent> agents = new ArrayList<>();
         final Graph graph = Graph.testGraph();
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 39; i++) {
             agents.add(new Agent(graph.randomLane(), 0.3 + ThreadLocalRandom.current().nextDouble() * 2.2, agents));
         }
+
+        agents.add(new Agent(graph.randomLane(), 2.5, agents, "Bob"));
+
         return new Simulation(graph, agents);
     }
 
