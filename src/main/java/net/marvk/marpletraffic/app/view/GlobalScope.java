@@ -5,17 +5,17 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 public class GlobalScope implements Scope {
-    private final ObjectProperty<EditMode> editMode = new SimpleObjectProperty<>(EditMode.NONE);
+    private final ObjectProperty<InteractionModeSupplier> interactionModeSupplier = new SimpleObjectProperty<>(() -> InteractionMode.NEUTRAL);
 
-    public EditMode getEditMode() {
-        return editMode.get();
+    public InteractionModeSupplier getInteractionModeSupplier() {
+        return interactionModeSupplier.get();
     }
 
-    public ObjectProperty<EditMode> editModeProperty() {
-        return editMode;
+    public ObjectProperty<InteractionModeSupplier> interactionModeSupplierProperty() {
+        return interactionModeSupplier;
     }
 
-    public void setEditMode(final EditMode editMode) {
-        this.editMode.set(editMode);
+    public void setInteractionModeSupplier(final InteractionModeSupplier interactionModeSupplier) {
+        this.interactionModeSupplier.set(interactionModeSupplier);
     }
 }

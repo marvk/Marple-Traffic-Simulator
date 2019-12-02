@@ -4,12 +4,12 @@ import de.saxsys.mvvmfx.FxmlView;
 import de.saxsys.mvvmfx.InjectViewModel;
 import de.saxsys.mvvmfx.MvvmFX;
 import javafx.fxml.FXML;
-import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Font;
 import net.marvk.marpletraffic.Agent;
 import net.marvk.marpletraffic.Simulation;
 import net.marvk.marpletraffic.graph.Lane;
@@ -58,14 +58,14 @@ public class MapView implements FxmlView<MapViewModel> {
         g.setFill(null);
         g.setLineWidth(1);
 
-        drawRoads(simulation, g);
+//        drawRoads(simulation, g);
         drawLanes(simulation, g);
-        drawRoadNods(simulation, g);
-        drawLaneNodes(simulation, g);
+//        drawRoadNods(simulation, g);
+//        drawLaneNodes(simulation, g);
         drawAgents(simulation, g);
 
-        for (final EditHint editHint : viewModel.editHints()) {
-            editHint.draw(g);
+        for (final EditingHint editingHint : viewModel.editingHints()) {
+            editingHint.draw(g);
         }
     }
 
@@ -101,7 +101,8 @@ public class MapView implements FxmlView<MapViewModel> {
             g.strokeLine(agentX, agentY, arrow.getX() + HP, arrow.getY() + HP);
 
             if (agent.getName() != null) {
-                g.setLineWidth(2);
+                g.setLineWidth(1);
+                g.setFont(new Font("SansSerief", 8));
                 g.strokeText(agent.getName(), agent.getLocation().getX() + 3.5, agent.getLocation().getY() - 3.5);
             }
         }
@@ -151,7 +152,7 @@ public class MapView implements FxmlView<MapViewModel> {
         for (final Lane lane : simulation.getGraph().getLanes()) {
             final Coordinate from = lane.getFrom().getLocation();
             final Coordinate to = lane.getTo().getLocation();
-            g.setLineWidth(1);
+            g.setLineWidth(11);
             g.setStroke(Color.DARKGRAY);
             g.setLineCap(StrokeLineCap.ROUND);
             g.strokeLine(from.getX() + HP, from.getY() + HP, to.getX() + HP, to.getY() + HP);

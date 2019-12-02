@@ -83,6 +83,11 @@ public class Road {
         throw new IllegalArgumentException("RoadNode " + roadNode + " is not connected to road");
     }
 
+    public void unlink() {
+        roadNode1.removeRoad(this);
+        roadNode2.removeRoad(this);
+    }
+
     public LineSegment getLine() {
         return line;
     }

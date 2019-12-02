@@ -48,6 +48,11 @@ public class Lane {
         return fromToVector.multiply(distanceFromStart / length).translate(from.getLocation());
     }
 
+    public void unlink() {
+        from.removeLane(this);
+        to.removeLane(this);
+    }
+
     @Override
     public String toString() {
         return "Lane{" +

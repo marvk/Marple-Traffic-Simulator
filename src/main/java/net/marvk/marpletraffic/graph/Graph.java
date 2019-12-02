@@ -44,6 +44,12 @@ public class Graph {
         addRoad(new Road(node1, node2, 1, 1));
     }
 
+    public void addRoad(final Road road) {
+        roads.add(road);
+        roadNodes.add(road.getRoadNode1());
+        roadNodes.add(road.getRoadNode2());
+    }
+
     public RoadNode splitRoad(final RoadSplit roadSplit) {
         final Road road = roadSplit.getRoad();
 
@@ -54,34 +60,35 @@ public class Graph {
         final Road segment2 = new Road(splitCenter, road.getRoadNode2(), road.getLanesFrom1To2(), road.getLanesFrom2To1());
 
         removeRoad(road);
-        addRoad(segment1);
-        addRoad(segment2);
+        roads.add(segment1);
+        roads.add(segment2);
 
         return splitCenter;
     }
 
-    private void addRoad(final Road road) {
-        roads.add(road);
-    }
-
-    private void removeRoad(final Road road) {
+    public void removeRoad(final Road road) {
         roads.remove(road);
-        disconnectRoad(road.getRoadNode1(), road);
-        disconnectRoad(road.getRoadNode2(), road);
+        road.unlink();
+        cleanupRoadNode(road.getRoadNode1());
+        cleanupRoadNode(road.getRoadNode2());
     }
 
-    private void disconnectRoad(final RoadNode roadNode, final Road road) {
-        roadNode.removeRoad(road);
-        cleanupRoadNode(roadNode);
+    public void removeRoadNode(final RoadNode roadNode) {
+        // Make a copy to avoid concurrent modification
+        for (final Road road : List.copyOf(roadNode.getRoads())) {
+            removeRoad(road);
+        }
     }
 
     private void cleanupRoadNode(final RoadNode roadNode) {
-        if (roadNode.getRoads().isEmpty()) {
+        if (!roadNode.isConnected()) {
             roadNodes.remove(roadNode);
         }
     }
 
     public void generateLanes() {
+        lanes.clear();
+        laneNodes.clear();
         final Map<RoadNode, RoadNodeConnections> map = new HashMap<>();
 
         for (final RoadNode roadNode : roadNodes) {
@@ -148,9 +155,7 @@ public class Graph {
 
                     for (final LaneNode fromLaneNode : fromLaneNodes) {
                         for (final LaneNode toLaneNode : toLaneNodes) {
-                            final Lane lane = new Lane(fromLaneNode, toLaneNode);
-
-                            lanes.add(lane);
+                            lanes.add(new Lane(fromLaneNode, toLaneNode));
                         }
                     }
                 }
@@ -190,9 +195,7 @@ public class Graph {
         }
 
         for (int i = 0; i < laneConnections1.incomingLaneNodes.length; i++) {
-            final Lane lane = new Lane(laneConnections1.incomingLaneNodes[i], laneConnections2.outgoingLaneNodes[i]);
-
-            lanes.add(lane);
+            lanes.add(new Lane(laneConnections1.incomingLaneNodes[i], laneConnections2.outgoingLaneNodes[i]));
         }
     }
 
@@ -275,6 +278,16 @@ public class Graph {
 
     public Set<LaneNode> getLaneNodes() {
         return unmodifiableLaneNodes;
+    }
+
+    public Optional<Road> getClosestRoad(final Coordinate coordinate) {
+        return roads.stream()
+                    .min(Comparator.comparingDouble(r -> r.getLine().distance(coordinate)));
+    }
+
+    public Optional<RoadNode> getClosestRoadNode(final Coordinate coordinate) {
+        return roadNodes.stream()
+                        .min(Comparator.comparingDouble(r -> r.getLocation().distance(coordinate)));
     }
 
     private static class RoadNodeConnections {

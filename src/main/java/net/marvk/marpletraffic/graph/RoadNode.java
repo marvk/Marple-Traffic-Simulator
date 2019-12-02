@@ -35,6 +35,18 @@ public class RoadNode {
         roads.remove(road);
     }
 
+    public boolean isConnected() {
+        return !roads.isEmpty();
+    }
+
+    public double distance(final RoadNode roadNode) {
+        return distance(roadNode.location);
+    }
+
+    public double distance(final Coordinate coordinate) {
+        return location.distance(coordinate);
+    }
+
     @Override
     public String toString() {
         return "RoadNode{" +

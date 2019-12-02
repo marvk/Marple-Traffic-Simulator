@@ -2,11 +2,15 @@ package net.marvk.marpletraffic.app.view.control;
 
 import de.saxsys.mvvmfx.FxmlView;
 import de.saxsys.mvvmfx.InjectViewModel;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import net.marvk.marpletraffic.app.view.EditMode;
+import net.marvk.marpletraffic.app.view.AddInteractionMode;
+import net.marvk.marpletraffic.app.view.DeleteInteractionMode;
+import net.marvk.marpletraffic.app.view.InspectInteractionMode;
+import net.marvk.marpletraffic.app.view.InteractionModeSupplier;
 
 public class ControlView implements FxmlView<ControlViewModel> {
     @FXML
@@ -28,24 +32,29 @@ public class ControlView implements FxmlView<ControlViewModel> {
     }
 
     public void initialize() {
-        initializeToggleButton(inspectButton, EditMode.INSPECT);
-        initializeToggleButton(addButton, EditMode.ADD);
-        initializeToggleButton(deleteButton, EditMode.DELETE);
+        initializeToggleButton(inspectButton, InspectInteractionMode::new);
+        initializeToggleButton(addButton, AddInteractionMode::new);
+        initializeToggleButton(deleteButton, DeleteInteractionMode::new);
 
         inspectButton.setSelected(true);
 
         toggleGroup.selectedToggleProperty()
-                   .addListener((observable, oldValue, newValue) -> setEditMode(newValue));
+                   .addListener((observable, oldValue, newValue) -> setInteractionModeSupplier(newValue));
 
-        setEditMode(toggleGroup.getSelectedToggle());
+        setInteractionModeSupplier(toggleGroup.getSelectedToggle());
     }
 
-    private void setEditMode(final Toggle selectedToggle) {
-        viewModel.setEditMode((EditMode) selectedToggle.getUserData());
+    private void setInteractionModeSupplier(final Toggle selectedToggle) {
+        viewModel.setInteractionModeSupplier((InteractionModeSupplier) selectedToggle.getUserData());
     }
 
-    private void initializeToggleButton(final ToggleButton toggleButton, final EditMode mode) {
+    private void initializeToggleButton(final ToggleButton toggleButton, final InteractionModeSupplier interactionModeSupplier) {
         toggleButton.setToggleGroup(toggleGroup);
-        toggleButton.setUserData(mode);
+        toggleButton.setUserData(interactionModeSupplier);
+    }
+
+    @FXML
+    public void spawn(final ActionEvent actionEvent) {
+        viewModel.spawn();
     }
 }
