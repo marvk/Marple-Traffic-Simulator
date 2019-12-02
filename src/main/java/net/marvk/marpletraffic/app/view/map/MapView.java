@@ -4,8 +4,10 @@ import de.saxsys.mvvmfx.FxmlView;
 import de.saxsys.mvvmfx.InjectViewModel;
 import de.saxsys.mvvmfx.MvvmFX;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import net.marvk.marpletraffic.Agent;
@@ -30,6 +32,19 @@ public class MapView implements FxmlView<MapViewModel> {
 
     public void initialize() {
         MvvmFX.getNotificationCenter().subscribe("REPAINT", (s, objects) -> repaint());
+
+        canvas.setOnMouseMoved(event -> viewModel.mouseMoved(event.getX(), event.getY()));
+        canvas.setOnMouseExited(event -> viewModel.mouseExited());
+        canvas.setOnMouseClicked(event -> viewModel.mouseClicked());
+
+        canvas.setOnKeyTyped(event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                viewModel.escapePressed();
+            }
+        });
+
+//        viewModel.editModeProperty().addListener((observable, oldValue, newValue) -> canvas.setCursor(getCursor()));
+//        canvas.setCursor(getCursor());
     }
 
     private void repaint() {
@@ -48,7 +63,24 @@ public class MapView implements FxmlView<MapViewModel> {
         drawRoadNods(simulation, g);
         drawLaneNodes(simulation, g);
         drawAgents(simulation, g);
+
+        for (final EditHint editHint : viewModel.editHints()) {
+            editHint.draw(g);
+        }
     }
+
+//    private Cursor getCursor() {
+//        switch (viewModel.getEditMode()) {
+//            case DELETE:
+//                return Cursor.CLOSED_HAND;
+//            case INSPECT:
+//                return Cursor.OPEN_HAND;
+//            case ADD:
+//                return Cursor.CROSSHAIR;
+//            default:
+//                return Cursor.DEFAULT;
+//        }
+//    }
 
     private void drawAgents(final Simulation simulation, final GraphicsContext g) {
         for (final Agent agent : simulation.getAgents()) {

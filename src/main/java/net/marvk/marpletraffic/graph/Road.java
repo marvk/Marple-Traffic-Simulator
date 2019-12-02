@@ -1,11 +1,15 @@
 package net.marvk.marpletraffic.graph;
 
+import org.locationtech.jts.geom.LineSegment;
+
 public class Road {
     private final RoadNode roadNode1;
     private final RoadNode roadNode2;
 
     private final int lanesFrom1To2;
     private final int lanesFrom2To1;
+
+    private final LineSegment line;
 
     public Road(final RoadNode roadNode1, final RoadNode roadNode2, final int lanesFrom1To2, final int lanesFrom2To1) {
         this.roadNode1 = roadNode1;
@@ -16,6 +20,8 @@ public class Road {
 
         this.lanesFrom1To2 = lanesFrom1To2;
         this.lanesFrom2To1 = lanesFrom2To1;
+
+        this.line = new LineSegment(roadNode1.getLocation(), roadNode2.getLocation());
     }
 
     public RoadNode getRoadNode1() {
@@ -66,16 +72,6 @@ public class Road {
         return new Road(roadNode1, roadNode2, n, n);
     }
 
-    @Override
-    public String toString() {
-        return "Road{" +
-                "roadNode1=" + roadNode1.getLocation() +
-                ", roadNode2=" + roadNode2.getLocation() +
-                ", lanesFrom1To2=" + lanesFrom1To2 +
-                ", lanesFrom2To1=" + lanesFrom2To1 +
-                '}';
-    }
-
     public RoadNode getConnectedNodeFrom(final RoadNode roadNode) {
         if (roadNode == roadNode1) {
             return roadNode2;
@@ -85,5 +81,19 @@ public class Road {
         }
 
         throw new IllegalArgumentException("RoadNode " + roadNode + " is not connected to road");
+    }
+
+    public LineSegment getLine() {
+        return line;
+    }
+
+    @Override
+    public String toString() {
+        return "Road{" +
+                "roadNode1=" + roadNode1.getLocation() +
+                ", roadNode2=" + roadNode2.getLocation() +
+                ", lanesFrom1To2=" + lanesFrom1To2 +
+                ", lanesFrom2To1=" + lanesFrom2To1 +
+                '}';
     }
 }

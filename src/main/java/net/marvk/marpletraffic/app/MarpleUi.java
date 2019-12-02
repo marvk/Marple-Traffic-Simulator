@@ -29,7 +29,7 @@ public final class MarpleUi extends Application implements MvvmfxApplication {
     public void startMvvmfx(final Stage primaryStage) {
         final EasyDI easyDI = new EasyDI();
 
-        easyDI.bindInstance(Simulation.class, s1());
+        easyDI.bindInstance(Simulation.class, s3());
 
         MvvmFX.setCustomDependencyInjector(easyDI::getInstance);
 
@@ -46,10 +46,10 @@ public final class MarpleUi extends Application implements MvvmfxApplication {
         final ArrayList<Agent> agents = new ArrayList<>();
         final Graph graph = Graph.testGraph();
         for (int i = 0; i < 39; i++) {
-            agents.add(new Agent(graph.randomLane(), 0.3 + ThreadLocalRandom.current().nextDouble() * 2.2, agents));
+            agents.add(new Agent(graph.getRandomLane(), 0.3 + ThreadLocalRandom.current().nextDouble() * 2.2, agents));
         }
 
-        agents.add(new Agent(graph.randomLane(), 2.5, agents, "Bob"));
+        agents.add(new Agent(graph.getRandomLane(), 2.5, agents, "Bob"));
 
         return new Simulation(graph, agents);
     }
@@ -60,5 +60,10 @@ public final class MarpleUi extends Application implements MvvmfxApplication {
         agents.add(new Agent(graph.getLanes().stream().findFirst().get(), 10, agents, "fasto"));
         agents.add(new Agent(graph.getLanes().stream().findFirst().get(), 0.1, agents));
         return new Simulation(graph, agents);
+    }
+
+    private Simulation s3() {
+        final Graph graph = Graph.simpleTestGraph();
+        return new Simulation(graph, new ArrayList<>());
     }
 }

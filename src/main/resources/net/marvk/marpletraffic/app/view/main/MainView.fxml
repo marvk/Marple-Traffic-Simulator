@@ -6,5 +6,5 @@
       fx:controller="net.marvk.marpletraffic.app.view.main.MainView">
 
     <fx:include source="../map/MapView.fxml"/>
-<!--    <fx:include source="../control/ControlView.fxml"/>-->
+    <fx:include source="../control/ControlView.fxml"/>
 </HBox>

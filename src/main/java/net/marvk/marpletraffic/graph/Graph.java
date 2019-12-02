@@ -1,5 +1,6 @@
 package net.marvk.marpletraffic.graph;
 
+import net.marvk.marpletraffic.graph.edit.RoadSplit;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 
@@ -34,6 +35,50 @@ public class Graph {
 
         this.unmodifiableLaneNodes = Collections.unmodifiableSet(laneNodes);
         this.unmodifiableLanes = Collections.unmodifiableSet(lanes);
+    }
+
+    public void addNewRoad(final RoadSplit roadSplit1, final RoadSplit roadSplit2) {
+        final RoadNode node1 = splitRoad(roadSplit1);
+        final RoadNode node2 = splitRoad(roadSplit2);
+
+        addRoad(new Road(node1, node2, 1, 1));
+    }
+
+    public RoadNode splitRoad(final RoadSplit roadSplit) {
+        final Road road = roadSplit.getRoad();
+
+        final RoadNode splitCenter = new RoadNode(roadSplit.getLocation());
+        roadNodes.add(splitCenter);
+
+        final Road segment1 = new Road(road.getRoadNode1(), splitCenter, road.getLanesFrom1To2(), road.getLanesFrom2To1());
+        final Road segment2 = new Road(splitCenter, road.getRoadNode2(), road.getLanesFrom1To2(), road.getLanesFrom2To1());
+
+        removeRoad(road);
+        addRoad(segment1);
+        addRoad(segment2);
+
+        return splitCenter;
+    }
+
+    private void addRoad(final Road road) {
+        roads.add(road);
+    }
+
+    private void removeRoad(final Road road) {
+        roads.remove(road);
+        disconnectRoad(road.getRoadNode1(), road);
+        disconnectRoad(road.getRoadNode2(), road);
+    }
+
+    private void disconnectRoad(final RoadNode roadNode, final Road road) {
+        roadNode.removeRoad(road);
+        cleanupRoadNode(roadNode);
+    }
+
+    private void cleanupRoadNode(final RoadNode roadNode) {
+        if (roadNode.getRoads().isEmpty()) {
+            roadNodes.remove(roadNode);
+        }
     }
 
     public void generateLanes() {
@@ -151,7 +196,7 @@ public class Graph {
         }
     }
 
-    public Lane randomLane() {
+    public Lane getRandomLane() {
         return lanes.stream()
                     .skip(ThreadLocalRandom.current().nextInt(lanes.size()))
                     .findFirst()

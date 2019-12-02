@@ -28,10 +28,10 @@ public class RoadNode {
     }
 
     public int getMostLanesConnected() {
-       return roads.stream().mapToInt(Road::getTotalNumberOfLanes).max().orElse(0);
+        return roads.stream().mapToInt(Road::getTotalNumberOfLanes).max().orElse(0);
     }
 
-    private void removeRoad(final Road road) {
+    public void removeRoad(final Road road) {
         roads.remove(road);
     }
 

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="net.marvk.marpletraffic.app.view.control.ControlView"
-      prefWidth="200.0" HBox.hgrow="ALWAYS">
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
+<VBox prefWidth="200.0" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.marvk.marpletraffic.app.view.control.ControlView">
+   <children>
+      <ToggleButton fx:id="inspectButton" mnemonicParsing="false" text="Inspect" />
+      <ToggleButton fx:id="addButton" mnemonicParsing="false" text="Add" />
+      <ToggleButton fx:id="deleteButton" mnemonicParsing="false" text="Delete" />
+   </children>
 </VBox>
